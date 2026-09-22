@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Подъём материалов</title>
+<meta name="description" content="Калькулятор стоимости подъёма строительных материалов на этаж: вес, лифт, пронос от машины.">
+<meta name="color-scheme" content="light dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bitter:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#EDECE7;
+  --surface:#F9F8F5;
+  --surface-2:#E4E2DB;
+  --ink:#16191C;
+  --ink-2:#3C434B;
+  --muted:#697079;
+  --line:rgba(22,25,28,.14);
+  --line-strong:rgba(22,25,28,.30);
+  --accent:#1F4E79;
+  --accent-ink:#FFFFFF;
+  --accent-soft:rgba(31,78,121,.10);
+  --signal:#A8501C;
+  --signal-soft:rgba(168,80,28,.12);
+  --shadow:0 1px 2px rgba(22,25,28,.06), 0 8px 24px -16px rgba(22,25,28,.30);
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#12161A;
+    --surface:#1A1F25;
+    --surface-2:#242B33;
+    --ink:#E9EAE6;
+    --ink-2:#BAC1C8;
+    --muted:#8C949D;
+    --line:rgba(233,234,230,.15);
+    --line-strong:rgba(233,234,230,.32);
+    --accent:#84B6E2;
+    --accent-ink:#0E1419;
+    --accent-soft:rgba(132,182,226,.14);
+    --signal:#E3A176;
+    --signal-soft:rgba(227,161,118,.14);
+    --shadow:0 1px 2px rgba(0,0,0,.40), 0 8px 24px -16px rgba(0,0,0,.70);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#12161A;
+  --surface:#1A1F25;
+  --surface-2:#242B33;
+  --ink:#E9EAE6;
+  --ink-2:#BAC1C8;
+  --muted:#8C949D;
+  --line:rgba(233,234,230,.15);
+  --line-strong:rgba(233,234,230,.32);
+  --accent:#84B6E2;
+  --accent-ink:#0E1419;
+  --accent-soft:rgba(132,182,226,.14);
+  --signal:#E3A176;
+  --signal-soft:rgba(227,161,118,.14);
+  --shadow:0 1px 2px rgba(0,0,0,.40), 0 8px 24px -16px rgba(0,0,0,.70);
+}
+
+*{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  font-size:15px;
+  line-height:1.5;
+  -webkit-tap-highlight-color:transparent;
+}
+img{max-width:100%;}
+[hidden]{display:none !important;}
+h1,h2,h3{font-family:'Bitter',Georgia,'Times New Roman',serif;font-weight:700;line-height:1.15;margin:0;text-wrap:balance;}
+p{margin:0;}
+a{color:var(--accent);text-underline-offset:.18em;}
+button,input,select{font:inherit;color:inherit;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px;}
+
+.num{font-family:'IBM Plex Mono',ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums;}
+.label{
+  font-family:'IBM Plex Mono',ui-monospace,monospace;
+  font-size:11px;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--muted);
+}
+
+.wrap{max-width:1120px;margin:0 auto;padding-inline:20px;}
+
+/* ---- шапка ---- */
+.top{border-bottom:1px solid var(--line);background:var(--surface);}
+.top .wrap{padding-block:22px 20px;display:flex;flex-wrap:wrap;gap:16px 28px;align-items:flex-end;justify-content:space-between;}
+.top h1{font-size:clamp(23px,4.4vw,31px);letter-spacing:-.015em;}
+.top .sub{color:var(--muted);font-size:13.5px;margin-top:5px;max-width:52ch;}
+
+/* ---- сетка ---- */
+.grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:22px;padding-block:24px 8px;align-items:start;}
+@media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr);}}
+
+.panel{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--r);
+  box-shadow:var(--shadow);
+}
+.panel > .head{
+  display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+  padding:14px 16px;border-bottom:1px solid var(--line);
+}
+.panel > .head h2{font-size:15.5px;letter-spacing:-.005em;}
+.panel > .body{padding:14px 16px;display:flex;flex-direction:column;gap:14px;}
+
+/* ---- позиции ---- */
+.rows{display:flex;flex-direction:column;gap:10px;}
+.row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 92px 34px;
+  gap:10px;align-items:center;
+}
+.row select{
+  width:100%;padding:9px 10px;border:1px solid var(--line-strong);border-radius:8px;
+  background:var(--paper);min-width:0;
+}
+.row .qty{
+  width:100%;padding:9px 10px;border:1px solid var(--line-strong);border-radius:8px;
+  background:var(--paper);text-align:right;
+  font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;
+}
+.row .kill{
+  width:34px;height:36px;border:1px solid var(--line);border-radius:8px;
+  background:transparent;color:var(--muted);cursor:pointer;line-height:1;font-size:17px;
+}
+.row .kill:hover{border-color:var(--signal);color:var(--signal);}
+.row-meta{
+  grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:4px 14px;
+  font-size:12px;color:var(--muted);
+  padding-bottom:10px;border-bottom:1px dashed var(--line);
+}
+.row-meta b{font-weight:500;color:var(--ink-2);font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;}
+.row-meta .flag{color:var(--signal);}
+.rows > .item:last-child .row-meta{border-bottom:0;padding-bottom:0;}
+.item{display:contents;}
+
+@media (max-width:460px){
+  .row{grid-template-columns:minmax(0,1fr) 74px 32px;gap:8px;}
+  .row .kill{width:32px;}
+}
+.add{
+  align-self:flex-start;
+  padding:8px 14px;border:1px dashed var(--line-strong);border-radius:8px;
+  background:transparent;cursor:pointer;color:var(--ink-2);font-size:14px;
+}
+.add:hover{border-color:var(--accent);color:var(--accent);border-style:solid;}
+
+/* ---- условия ---- */
+.field{display:flex;flex-direction:column;gap:7px;}
+.field input[type="number"]{
+  padding:9px 11px;border:1px solid var(--line-strong);border-radius:8px;background:var(--paper);
+  font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;width:100%;
+}
+.seg{display:flex;gap:0;border:1px solid var(--line-strong);border-radius:8px;overflow:hidden;}
+.seg button{
+  flex:1 1 0;min-width:0;padding:9px 6px;border:0;background:var(--paper);cursor:pointer;
+  font-size:13px;color:var(--ink-2);border-right:1px solid var(--line);
+}
+.seg button:last-child{border-right:0;}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:600;}
+
+/* ---- лестница ---- */
+.stairs{display:flex;align-items:flex-end;gap:3px;height:74px;padding-top:4px;}
+.stairs .st{
+  flex:1 1 0;min-width:0;background:var(--surface-2);border-radius:3px 3px 0 0;
+}
+.stairs .st.up{background:var(--accent-soft);}
+.stairs .st.top{background:var(--accent);}
+.stairs .more{
+  flex:0 0 auto;align-self:flex-end;font-size:11px;color:var(--muted);padding-left:4px;
+  font-family:'IBM Plex Mono',ui-monospace,monospace;
+}
+
+/* ---- итог ---- */
+.sum{display:flex;flex-direction:column;gap:9px;}
+.sum .line{display:flex;justify-content:space-between;gap:14px;align-items:baseline;font-size:13.5px;color:var(--ink-2);}
+.sum .line span:last-child{font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.sum .rule{height:1px;background:var(--line);margin-block:3px;}
+.total{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding-top:2px;}
+.total .label{color:var(--muted);}
+.total .val{
+  font-family:'Bitter',Georgia,serif;font-weight:700;font-size:clamp(27px,5.5vw,34px);
+  font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--accent);white-space:nowrap;
+}
+.note{
+  font-size:12.5px;line-height:1.45;color:var(--ink-2);
+  background:var(--signal-soft);border-left:2px solid var(--signal);
+  padding:9px 11px;border-radius:0 6px 6px 0;
+}
+.note.calm{background:var(--accent-soft);border-left-color:var(--accent);}
+
+/* ---- тарифы ---- */
+.rates{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:12px;}
+.rates .field input{max-width:100%;}
+.rates .hint{font-size:11.5px;color:var(--muted);}
+
+/* ---- низ ---- */
+.foot{border-top:1px solid var(--line);margin-top:26px;}
+.foot .wrap{padding-block:20px 30px;display:flex;flex-direction:column;gap:9px;color:var(--muted);font-size:12.5px;}
+.foot p{max-width:74ch;}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important;transition:none !important;}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div>
+      <h1>Подъём материалов на этаж</h1>
+      <p class="sub">Считает по весу: сколько этажей нести, есть ли лифт и далеко ли от машины до подъезда.</p>
+    </div>
+    <div class="label" id="stamp">Предварительный расчёт</div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="grid">
+
+    <section class="panel" aria-labelledby="h-items">
+      <div class="head">
+        <h2 id="h-items">Что поднимаем</h2>
+        <span class="label" id="items-weight">0 кг</span>
+      </div>
+      <div class="body">
+        <div class="rows" id="rows"></div>
+        <button class="add" type="button" id="add">+ Добавить материал</button>
+      </div>
+    </section>
+
+    <div style="display:flex;flex-direction:column;gap:22px;">
+
+      <section class="panel" aria-labelledby="h-cond">
+        <div class="head"><h2 id="h-cond">Условия</h2></div>
+        <div class="body">
+
+          <div class="field">
+            <label class="label" for="floor">Этаж</label>
+            <input type="number" id="floor" min="1" max="30" step="1" value="5" inputmode="numeric">
+            <div class="stairs" id="stairs" aria-hidden="true"></div>
+            <div class="label" id="floors-note">подъём на 4 этажа</div>
+          </div>
+
+          <div class="field">
+            <span class="label" id="lift-label">Лифт</span>
+            <div class="seg" role="group" aria-labelledby="lift-label" id="lift">
+              <button type="button" data-lift="none" aria-pressed="true">Нет</button>
+              <button type="button" data-lift="passenger" aria-pressed="false">Пассажирский</button>
+              <button type="button" data-lift="cargo" aria-pressed="false">Грузовой</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="carry">Пронос от машины, м</label>
+            <input type="number" id="carry" min="0" max="500" step="5" value="20" inputmode="numeric">
+          </div>
+
+          <div class="note" id="lift-warn" hidden></div>
+
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-sum">
+        <div class="head"><h2 id="h-sum">Итог</h2></div>
+        <div class="body">
+          <div class="sum" id="sum"></div>
+          <div class="total">
+            <span class="label">К оплате</span>
+            <span class="val num" id="total">0 ₽</span>
+          </div>
+          <div class="note calm" id="min-note" hidden></div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <section class="panel" aria-labelledby="h-rates" style="margin-top:22px;">
+    <div class="head">
+      <h2 id="h-rates">Тарифы</h2>
+      <button class="add" type="button" id="reset" style="padding:5px 11px;font-size:12.5px;">Сбросить</button>
+    </div>
+    <div class="body">
+      <div class="rates">
+        <div class="field">
+          <label class="label" for="r-nolift">Без лифта, ₽/кг за этаж</label>
+          <input type="number" id="r-nolift" min="0" step="0.05" value="1.2" inputmode="decimal">
+        </div>
+        <div class="field">
+          <label class="label" for="r-lift">Лифтом, ₽/кг разово</label>
+          <input type="number" id="r-lift" min="0" step="0.05" value="0.5" inputmode="decimal">
+        </div>
+        <div class="field">
+          <label class="label" for="r-free">Пронос без доплаты, м</label>
+          <input type="number" id="r-free" min="0" step="5" value="30" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label class="label" for="r-carry">Далее, ₽/кг за 10 м</label>
+          <input type="number" id="r-carry" min="0" step="0.05" value="0.35" inputmode="decimal">
+        </div>
+        <div class="field">
+          <label class="label" for="r-min">Минимум заказа, ₽</label>
+          <input type="number" id="r-min" min="0" step="100" value="1500" inputmode="numeric">
+        </div>
+      </div>
+      <p class="rates hint" style="display:block;">Значения по умолчанию — ориентировочные. Поставьте свои: они сохранятся в этом браузере.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p>Вес листов посчитан по номинальной плотности плиты и может отличаться от партии на несколько процентов. Первый этаж не тарифицируется: подъём считается начиная со второго.</p>
+    <p>Размеры и вес ДСП — по карточке <a href="https://www.profkom64.ru/product/listovie_materialy/dsp/dsp_24400h1830h16_mm.html" rel="noopener">ДСП 2440 × 1830 × 16 мм</a> в каталоге Профкома.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  // Длина, при которой лист перестаёт влезать в пассажирскую кабину.
+  var PASSENGER_LIMIT = 1600;
+
+  var MATERIALS = [
+    {id:"dsp-2440",   name:"ДСП 2440 × 1830 × 16 мм",        kg:50.0, m2:4.465, dim:2440},
+    {id:"dsp-2500",   name:"ДСП 2500 × 1830 × 16 мм",        kg:51.2, m2:4.575, dim:2500},
+    {id:"fanera-18",  name:"Фанера ФК 1525 × 1525 × 18 мм",  kg:29.3, m2:2.326, dim:1525},
+    {id:"osb-9",      name:"ОСБ-3 2500 × 1250 × 9 мм",       kg:18.0, m2:3.125, dim:2500},
+    {id:"osb-12",     name:"ОСБ-3 2500 × 1250 × 12 мм",      kg:24.0, m2:3.125, dim:2500},
+    {id:"gkl",        name:"ГКЛ 2500 × 1200 × 12,5 мм",      kg:29.0, m2:3.000, dim:2500},
+    {id:"dvp",        name:"ДВП 2745 × 1700 × 3,2 мм",       kg:12.0, m2:4.667, dim:2745},
+    {id:"csp",        name:"ЦСП 3200 × 1250 × 10 мм",        kg:52.0, m2:4.000, dim:3200},
+    {id:"cement",     name:"Цемент М500, мешок 50 кг",       kg:50.0, m2:0,     dim:600},
+    {id:"peskobeton", name:"Пескобетон М300, мешок 40 кг",   kg:40.0, m2:0,     dim:600},
+    {id:"shtukaturka",name:"Штукатурка гипсовая, мешок 30 кг",kg:30.0, m2:0,    dim:600},
+    {id:"kirpich",    name:"Кирпич керамический, шт",        kg:3.5,  m2:0,     dim:250}
+  ];
+
+  var DEFAULT_RATES = {noLift:1.2, lift:0.5, free:30, carry:0.35, min:1500};
+
+  var state = {
+    items: [{mat:"dsp-2440", qty:10}, {mat:"gkl", qty:6}],
+    floor: 5,
+    lift: "none",
+    carry: 20,
+    rates: Object.assign({}, DEFAULT_RATES)
+  };
+
+  var fmtRub = new Intl.NumberFormat("ru-RU", {maximumFractionDigits:0});
+  var fmtKg  = new Intl.NumberFormat("ru-RU", {maximumFractionDigits:1});
+  var fmtM2  = new Intl.NumberFormat("ru-RU", {maximumFractionDigits:2});
+
+  function material(id){
+    for(var i=0;i<MATERIALS.length;i++){ if(MATERIALS[i].id===id) return MATERIALS[i]; }
+    return MATERIALS[0];
+  }
+
+  function plural(n, one, few, many){
+    var a = Math.abs(n) % 100, b = a % 10;
+    if(a > 10 && a < 20) return many;
+    if(b > 1 && b < 5) return few;
+    if(b === 1) return one;
+    return many;
+  }
+
+  // --- сохранение тарифов ---
+  function saveRates(){
+    try{ localStorage.setItem("podyom-rates", JSON.stringify(state.rates)); }catch(e){}
+  }
+  function loadRates(){
+    try{
+      var raw = localStorage.getItem("podyom-rates");
+      if(!raw) return;
+      var got = JSON.parse(raw);
+      Object.keys(DEFAULT_RATES).forEach(function(k){
+        if(typeof got[k] === "number" && isFinite(got[k]) && got[k] >= 0) state.rates[k] = got[k];
+      });
+    }catch(e){}
+  }
+
+  // --- расчёт ---
+  function calc(){
+    var r = state.rates;
+    var floors = Math.max(0, state.floor - 1);
+    var extraSteps = Math.ceil(Math.max(0, state.carry - r.free) / 10);
+
+    var res = {lines:[], weight:0, area:0, base:0, carry:0, total:0, tooBig:[], floors:floors, extraSteps:extraSteps};
+
+    state.items.forEach(function(it){
+      var m = material(it.mat);
+      var qty = Math.max(0, it.qty || 0);
+      var kg = m.kg * qty;
+
+      var byLift = state.lift === "cargo" ||
+                   (state.lift === "passenger" && m.dim <= PASSENGER_LIMIT);
+      if(state.lift === "passenger" && m.dim > PASSENGER_LIMIT && qty > 0){
+        res.tooBig.push(m.name.split(",")[0]);
+      }
+
+      var base  = byLift ? kg * r.lift : kg * r.noLift * floors;
+      var carry = kg * extraSteps * r.carry;
+
+      res.weight += kg;
+      res.area   += m.m2 * qty;
+      res.base   += base;
+      res.carry  += carry;
+      res.lines.push({mat:m, qty:qty, kg:kg, byLift:byLift, sum:base + carry});
+    });
+
+    var raw = res.base + res.carry;
+    res.raw = raw;
+    res.minApplied = res.weight > 0 && raw < r.min;
+    res.total = res.weight > 0 ? Math.max(raw, r.min) : 0;
+    return res;
+  }
+
+  // --- отрисовка позиций ---
+  var rowsEl = document.getElementById("rows");
+
+  function optionsHtml(selected){
+    return MATERIALS.map(function(m){
+      return '<option value="' + m.id + '"' + (m.id === selected ? " selected" : "") + ">" + m.name + "</option>";
+    }).join("");
+  }
+
+  function renderRows(res){
+    rowsEl.textContent = "";
+    state.items.forEach(function(it, i){
+      var line = res.lines[i];
+      var wrapEl = document.createElement("div");
+      wrapEl.className = "item";
+
+      var row = document.createElement("div");
+      row.className = "row";
+      row.innerHTML =
+        '<select aria-label="Материал">' + optionsHtml(it.mat) + "</select>" +
+        '<input class="qty" type="number" min="0" step="1" inputmode="numeric" aria-label="Количество" value="' + (it.qty || 0) + '">' +
+        '<button class="kill" type="button" aria-label="Убрать позицию">×</button>';
+
+      row.querySelector("select").addEventListener("change", function(e){
+        state.items[i].mat = e.target.value; render();
+      });
+      row.querySelector(".qty").addEventListener("input", function(e){
+        var v = parseFloat(e.target.value);
+        state.items[i].qty = isFinite(v) && v > 0 ? Math.round(v) : 0;
+        render();
+      });
+      row.querySelector(".kill").addEventListener("click", function(){
+        state.items.splice(i, 1);
+        if(!state.items.length) state.items.push({mat:"dsp-2440", qty:0});
+        render();
+      });
+
+      var meta = document.createElement("div");
+      meta.className = "row-meta";
+      var bits = ["<span>вес <b>" + fmtKg.format(line.kg) + " кг</b></span>"];
+      if(line.mat.m2 > 0) bits.push("<span>площадь <b>" + fmtM2.format(line.mat.m2 * line.qty) + " м²</b></span>");
+      bits.push("<span>подъём <b>" + fmtRub.format(Math.round(line.sum)) + " ₽</b></span>");
+      if(state.lift === "passenger" && !line.byLift && line.qty > 0){
+        bits.push('<span class="flag">не входит в кабину — несём руками</span>');
+      }
+      meta.innerHTML = bits.join("");
+
+      wrapEl.appendChild(row);
+      wrapEl.appendChild(meta);
+      rowsEl.appendChild(wrapEl);
+    });
+  }
+
+  // --- лестница ---
+  function renderStairs(){
+    var el = document.getElementById("stairs");
+    el.textContent = "";
+    var shown = Math.min(state.floor, 12);
+    for(var f = 1; f <= shown; f++){
+      var bar = document.createElement("div");
+      bar.className = "st" + (f === shown && state.floor <= 12 ? " top" : (f > 1 ? " up" : ""));
+      bar.style.height = Math.round(18 + (f / shown) * 52) + "%";
+      el.appendChild(bar);
+    }
+    if(state.floor > 12){
+      var more = document.createElement("div");
+      more.className = "more";
+      more.textContent = "…" + state.floor;
+      el.appendChild(more);
+    }
+  }
+
+  // --- итог ---
+  function renderSum(res){
+    var sum = document.getElementById("sum");
+    var r = state.rates;
+    var rows = [];
+
+    rows.push(["Общий вес", fmtKg.format(res.weight) + " кг"]);
+    if(res.area > 0) rows.push(["Площадь листов", fmtM2.format(res.area) + " м²"]);
+
+    var how = state.lift === "cargo" ? "грузовым лифтом"
+            : state.lift === "passenger" ? "лифтом и руками"
+            : "руками на " + res.floors + " " + plural(res.floors, "этаж", "этажа", "этажей");
+    rows.push(["Подъём " + how, fmtRub.format(Math.round(res.base)) + " ₽"]);
+
+    if(res.carry > 0){
+      rows.push(["Пронос свыше " + r.free + " м", fmtRub.format(Math.round(res.carry)) + " ₽"]);
+    }
+
+    sum.textContent = "";
+    rows.forEach(function(pair){
+      var d = document.createElement("div");
+      d.className = "line";
+      d.innerHTML = "<span>" + pair[0] + "</span><span>" + pair[1] + "</span>";
+      sum.appendChild(d);
+    });
+    var rule = document.createElement("div");
+    rule.className = "rule";
+    sum.appendChild(rule);
+
+    document.getElementById("total").textContent = fmtRub.format(Math.round(res.total)) + " ₽";
+
+    var minNote = document.getElementById("min-note");
+    if(res.minApplied){
+      minNote.textContent = "По расчёту вышло " + fmtRub.format(Math.round(res.raw)) +
+        " ₽ — меньше минимального заказа. К оплате идёт минимум " + fmtRub.format(r.min) + " ₽.";
+      minNote.hidden = false;
+    } else {
+      minNote.hidden = true;
+    }
+
+    var warn = document.getElementById("lift-warn");
+    if(res.tooBig.length){
+      var uniq = res.tooBig.filter(function(v, i, a){ return a.indexOf(v) === i; });
+      warn.textContent = uniq.join(", ") + " — длиннее " + PASSENGER_LIMIT +
+        " мм, в пассажирскую кабину не встаёт. Эти позиции считаются как ручной подъём.";
+      warn.hidden = false;
+    } else {
+      warn.hidden = true;
+    }
+
+    document.getElementById("items-weight").textContent = fmtKg.format(res.weight) + " кг";
+    document.getElementById("floors-note").textContent =
+      res.floors === 0 ? "первый этаж — подъёма нет"
+                       : "подъём на " + res.floors + " " + plural(res.floors, "этаж", "этажа", "этажей");
+  }
+
+  function render(){
+    var res = calc();
+    renderRows(res);
+    renderStairs();
+    renderSum(res);
+  }
+
+  // --- управление ---
+  document.getElementById("add").addEventListener("click", function(){
+    state.items.push({mat:"gkl", qty:1});
+    render();
+    var last = rowsEl.querySelectorAll(".row select");
+    if(last.length) last[last.length - 1].focus();
+  });
+
+  document.getElementById("floor").addEventListener("input", function(e){
+    var v = parseInt(e.target.value, 10);
+    state.floor = isFinite(v) ? Math.min(30, Math.max(1, v)) : 1;
+    render();
+  });
+
+  document.getElementById("carry").addEventListener("input", function(e){
+    var v = parseFloat(e.target.value);
+    state.carry = isFinite(v) && v > 0 ? v : 0;
+    render();
+  });
+
+  document.getElementById("lift").addEventListener("click", function(e){
+    var btn = e.target.closest("button[data-lift]");
+    if(!btn) return;
+    state.lift = btn.dataset.lift;
+    Array.prototype.forEach.call(this.querySelectorAll("button"), function(b){
+      b.setAttribute("aria-pressed", String(b === btn));
+    });
+    render();
+  });
+
+  var RATE_FIELDS = {"r-nolift":"noLift", "r-lift":"lift", "r-free":"free", "r-carry":"carry", "r-min":"min"};
+  Object.keys(RATE_FIELDS).forEach(function(id){
+    document.getElementById(id).addEventListener("input", function(e){
+      var v = parseFloat(e.target.value);
+      state.rates[RATE_FIELDS[id]] = isFinite(v) && v >= 0 ? v : 0;
+      saveRates();
+      render();
+    });
+  });
+
+  document.getElementById("reset").addEventListener("click", function(){
+    state.rates = Object.assign({}, DEFAULT_RATES);
+    saveRates();
+    syncRateInputs();
+    render();
+  });
+
+  function syncRateInputs(){
+    Object.keys(RATE_FIELDS).forEach(function(id){
+      document.getElementById(id).value = state.rates[RATE_FIELDS[id]];
+    });
+  }
+
+  loadRates();
+  syncRateInputs();
+  render();
+})();
+</script>
+
+</body>
+</html>
